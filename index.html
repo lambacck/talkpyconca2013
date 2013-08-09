@@ -1,0 +1,202 @@
+<!doctype html> <html lang="en">
+
+    <head> <meta charset="utf-8">
+
+        <title>Making Embeddable Web Widgets Without Iframes</title>
+
+        <meta name="apple-mobile-web-app-capable" content="yes" /> <meta
+        name="apple-mobile-web-app-status-bar-style"
+        content="black-translucent" />
+
+        <link rel="stylesheet" href="css/reveal.css"> <link rel="stylesheet"
+        href="css/theme/default.css" id="theme">
+
+        <!-- For syntax highlighting --> <link rel="stylesheet"
+        href="lib/css/zenburn.css">
+
+        <!-- If the query includes 'print-pdf', use the PDF print sheet -->
+        <script> document.write( '<link rel="stylesheet" href="css/print/' + (
+            window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) +
+            '.css" type="text/css" media="print">' ); </script>
+
+        <!--[if lt IE 9]> <script src="lib/js/html5shiv.js"></script>
+        <![endif]--> </head>
+
+    <body>
+
+        <div class="reveal">
+
+            <!-- Any section element inside of this container is displayed as a
+            slide -->
+            <div class="slides">
+
+<section>
+    <h1>Making Embeddable Web Widgets Without Iframes</h1> 
+    <p> 
+        <a href="http://whatschrisdoing.com">Christopher Lambacher</a>
+        <br> <a href="http://twitter.com/lambacck">@lambacck</a> 
+        <br> <a href="http://www.tindie.com">Tindie</a>
+        <br> <img src="img/tindie_logo.png" style="border: none; background: transparent; box-shadow: none;">
+    </p> 
+    <aside class="notes">
+        Hi, I'm Chris Lambacher, and I work for Tindie writing Django based web Applications.
+    </aside>
+</section>
+
+
+<section>
+    <section>
+        <h2>The Marketplace for Makers</h2>
+        <img src="img/want_this.PNG">
+    </section>
+    <section>
+        <h2>Widgets</h2>
+        <ul>
+            <li>for seller sites</li>
+            <li>easy to put on the page</li>
+            <li>look like Tindie products</li>
+        </ul>
+    </section>
+    <section>
+        <h2>Simple solution: iframes</h2>
+        <ul>
+            <li><code>&lt;iframe src="https://www.tindie.com/widgetiframe?some=criteria"&gt;&lt;/iframe&gt;</code></li>
+            <li>Doesn't integrate well with parent site</li>
+            <li>Multiple widgets per page? Multiple full page loads.</li>
+        </ul>
+        <img class="fragment" src="img/regret.gif">
+    </section>
+    <section>
+        <h2>JavaScript-based widgets?</h2>
+        <ul>
+            <li>Load jQuery.</li>
+            <li>Detect widget insertion location(s).</li>
+            <li>Client side template language.</li>
+        </ul>
+        <br>
+        <br>
+        <h3 class="fragment"><a href="https://github.com/premasagar/sqwidget">Sqwidget</a> to the rescue!</h3>
+    </section>
+
+</section>
+<section>
+    <section>
+        <h2>It's As Easy As</h2>
+        <pre><code>&lt;!-- where you want a widget --&gt;
+&lt;div data-sqwidget=&#39;src:tindie.js&#39; 
+    data-sqwidget-settings=&#39;query:XXXXXXX&#39;&gt;
+        Loading Tindie Widget ...
+&lt;/div&gt;
+
+&lt;!-- near the closing body tag --&gt;
+&lt;script
+    type=&#39;text/javascript&#39;
+    src=&#39;https://www.tindie.com/widgets/tindie.js&#39;&gt;&lt;/script&gt;</code></pre>
+    </section>
+</section>
+<section>
+    <section>
+        <h2>Browser Caching</h2>
+        <img class="fragment" src="img/cache_bust.jpg">
+    </section>
+    <section>
+        <h2>tindie.js is templated</h2>
+        <pre><code>url(
+    r'^widgets/tindie.js$', direct_to_template,
+    {
+        'template': 'widgets/tindie.js',
+        'mimetype': 'text/javascript'
+    }
+)</code></pre>
+    </section>
+    <section>
+        <h2>Generates small bootstrap script</h2>
+        <pre><code>(function(w, d) {
+    w.tindie = {
+        basePath:"https://www.tindie.com/",
+        cssfile: "https://d2ss6ovg47m0r5.cloudfront.net/CACHE/css/9f62fae5f58e.css",
+        STATIC_URL: "https://d2ss6ovg47m0r5.cloudfront.net/",
+        
+        font_version: "dafe1d746c81"
+    }
+    var s = d.createElement("script");
+    s.type = "text/javascript";
+    s.async = true
+    s.src = "https://d2ss6ovg47m0r5.cloudfront.net/CACHE/js/41bab96657e4.js";
+    d.documentElement.childNodes[0].appendChild(s);
+})(window, document);</code></pre>
+    </section>
+    <section>
+        <h2>Django-Admin Command Generates Combined Minified Assets</h2>
+        <ul>
+            <li>We use <a href="http://django-compressor.readthedocs.org/en/latest/">django-compressor</a>; abuse it in to generate the following:</li>
+            <li>1 CSS file
+                <ul><li>Use <a href="http://lesscss.org/">lesscss</a> to pick a subset from main site</li></ul></li>
+            <li>1 JavaScript file
+                <ul>
+                    <li>Sqwidget</li>
+                    <li>client-side templates</li>
+                    <li>widget logic</li>
+                </ul>
+            </li>
+        </ul>
+    </section>
+</section>
+<section>
+    <section>
+        <h2>Data</h2>
+        <ul>
+            <li>Use <a href="http://tastypieapi.org/">Tastypie</a> on server side</li>
+            <li>jQuery &amp; JSONP to get data and work around same origin problems</li>
+            <li><code>jQuery.map</code> and multiple calls to Sqwidget's <code>widget.renderWithTemplate</code> for looping, conditionals</li>
+    </section>
+</section>
+<section>
+    <h1>Thanks for Listening</h1>
+    <div style="font-size: 75%; margin-top: 5em;">
+        <a href="http://whatschrisdoing.com">Christopher Lambacher</a>
+        <br>whatschrisdoing.com
+        <br>
+        <a href="http://twitter.com/lambacck">@lambacck</a>
+        <br>
+        <a href="http://www.tindie.com">tindie.com</a>
+        <br>
+        <img src="img/tindie_logo.png" style="border: none; background: transparent; box-shadow: none;">
+    </div>
+</section>
+
+            </div>
+
+        </div>
+
+<script src="lib/js/head.min.js"></script>
+<script src="js/reveal.min.js"></script>
+
+<script>
+
+    // Full list of configuration options available here:
+    // https://github.com/hakimel/reveal.js#configuration
+    Reveal.initialize({
+        controls: true,
+        progress: true,
+        history: true,
+        rollingLinks: false, 
+
+        theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+        transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/none
+
+        // Optional libraries used to extend on reveal.js
+        dependencies: [
+            { src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+            { src: 'plugin/markdown/showdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+            { src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+            { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+            { src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+            { src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+        ]
+    });
+
+</script>
+
+</body>
+</html>
